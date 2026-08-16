@@ -1,0 +1,27 @@
+# https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/objectdefinitions.html#host
+---
+nagiosconfig_host_templates: {}
+nagiosconfig_host_templates_default:
+  generic-host:
+    action_url: /pnp4nagios/graph?host=$HOSTNAME$
+    event_handler_enabled: 1
+    flap_detection_enabled: 1
+    notification_period: 24x7
+    notifications_enabled: 1
+    process_perf_data: 1
+    register: 0
+    retain_nonstatus_information: 1
+    retain_status_information: 1
+  server:
+    check_command: check_host_alive
+    check_interval: 5
+    check_period: 24x7
+    contact_groups: admins
+    max_check_attempts: 3
+    notification_interval: 60
+    notification_options: d,u,r
+    notification_period: 24x7
+    register: 0
+    retry_interval: 1
+    statusmap_image: server.png
+    use: generic-host

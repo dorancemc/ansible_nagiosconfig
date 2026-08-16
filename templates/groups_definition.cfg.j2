@@ -1,0 +1,18 @@
+{% for name, item in nagiosconfig_hostgroups.items() %}
+define hostgroup {
+    hostgroup_name    {{ name }}
+{% for key, value in item.items() %}
+    {{ key }}    {{ value }}
+{% endfor %}
+}
+
+{% endfor %}
+{% for name, item in nagiosconfig_servicegroups.items() %}
+define servicegroup {
+    servicegroup_name    {{ name }}
+{% for key, value in item.items() %}
+    {{ key }}    {{ value }}
+{% endfor %}
+}
+
+{% endfor %}

@@ -1,0 +1,21 @@
+# https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/4/en/objectdefinitions.html#host
+---
+
+_host:
+  host_name: localhost
+  address: 127.0.0.1
+  hostgroups: local
+_services:
+  ping: check_ping!100.0,20%!500.0,60%
+  root: check_local_disk!20%!10%!/
+  current_users: check_local_users!2!5
+  ssh: check_ssh
+  http: check_http
+  # total_processes: check_local_procs!250!400!RSZDT
+  # current_load: check_local_load!5.0,4.0,3.0!10.0,6.0,4.0
+  total_processes:
+    servicegroups: localresources
+    check_command: check_local_procs!250!400!RSZDT
+  current_load:
+    servicegroups: localresources
+    check_command: check_local_load!5.0,4.0,3.0!10.0,6.0,4.0

@@ -1,0 +1,39 @@
+---
+name: Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ANSIBLE_VERSION: '13.3'
+  PYTHON_VERSION: '3.14'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install tooling
+        run: pip install "ansible==${ANSIBLE_VERSION}" ansible-lint yamllint
+
+      - name: Run yamllint
+        run: yamllint -c .yamllint.yml .
+
+      - name: Run ansible-lint
+        run: ansible-lint --offline .
+
+      - name: Check playbook syntax
+        run: ansible-playbook --syntax-check -i "localhost," tests/test.yml

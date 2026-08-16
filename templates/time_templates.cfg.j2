@@ -1,0 +1,10 @@
+{% for name, item in __nagiosconfig_timeperiods.items() %}
+define timeperiod {
+    name    {{ name }}
+    timeperiod_name    {{ name }}
+{% for key, value in item.items() %}
+    {{ key }}    {{ value }}
+{% endfor %}
+}
+
+{% endfor %}

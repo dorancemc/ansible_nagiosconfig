@@ -1,0 +1,33 @@
+---
+# core  objects under the nagios etc path, one cfg_dir per object directory
+# xi    objects under /usr/local/nagios/etc/static, not visible in the CCM
+nagiosconfig_flavor: core
+
+# once   write the monitoring objects only where nothing exists yet
+# always this role owns the monitoring objects and overwrites them
+# never  another role owns the monitoring objects, do not touch them
+nagiosconfig_mode: once
+
+# true deletes every object file on the target that this role does not generate
+nagiosconfig_clean_assets: false
+
+# fail when the managed directories are not reachable from a cfg_dir entry of
+# the live nagios.cfg, which this role never writes
+nagiosconfig_assert_cfg_dirs: true
+
+# relative paths are resolved against the role directory
+nagiosconfig_hosts_path: files/nagios_hosts
+
+nagiosconfig_host_template_default: server
+nagiosconfig_service_template_default: generic-service
+
+nagiosconfig_hostgroups:
+  cloud: {}
+  local: {}
+
+nagiosconfig_servicegroups:
+  localresources: {}
+
+# paths and identities of the target installation, loaded from
+# vars/<flavor>[-<os>].yaml; whatever is defined here is merged on top
+nagiosconfig_target: {}

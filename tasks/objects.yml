@@ -1,0 +1,176 @@
+---
+- name: Validate target parameters
+  ansible.builtin.assert:
+    that:
+      - nagiosconfig_target.command | default('') | length > 0
+      - nagiosconfig_target.etc_path | default('') | length > 0
+      - nagiosconfig_target.group | default('') | length > 0
+      - nagiosconfig_target.objects_path | default('') | length > 0
+      - nagiosconfig_target.user | default('') | length > 0
+    fail_msg: nagiosconfig_target is incomplete.
+
+- name: Read the live nagios configuration
+  ansible.builtin.slurp:
+    src: "{{ nagiosconfig_target.etc_path }}/nagios.cfg"
+  register: __nagiosconfig_main_cfg
+
+- name: List the object directories declared in nagios.cfg
+  ansible.builtin.set_fact:
+    __nagiosconfig_declared_dirs: >-
+      {{ (__nagiosconfig_main_cfg.content | b64decode).splitlines()
+         | select('match', '^\s*cfg_dir\s*=')
+         | map('regex_replace', '^\s*cfg_dir\s*=\s*', '')
+         | map('trim')
+         | map('regex_replace', '/$', '')
+         | list }}
+
+- name: List the object directories missing from nagios.cfg
+  ansible.builtin.set_fact:
+    __nagiosconfig_missing_dirs: >-
+      {{ __nagiosconfig_cfg_dirs
+         | map('regex_replace', '^', nagiosconfig_target.objects_path ~ '/')
+         | reject('match', '^(' ~ (__nagiosconfig_declared_dirs | map('regex_escape') | join('|') | default('(?!)', true)) ~ ')(/|$)')
+         | list }}
+
+- name: Assert the object directories are declared in nagios.cfg
+  ansible.builtin.assert:
+    that:
+      - __nagiosconfig_missing_dirs | length == 0
+    fail_msg: "No cfg_dir entry in {{ nagiosconfig_target.etc_path }}/nagios.cfg covers {{ __nagiosconfig_missing_dirs | join(', ') }}. This role never writes nagios.cfg, declare them there first."
+  when: nagiosconfig_assert_cfg_dirs | bool
+
+- name: Create the object directories
+  ansible.builtin.file:
+    path: "{{ nagiosconfig_target.objects_path }}/{{ item }}"
+    state: directory
+    owner: "{{ nagiosconfig_target.user }}"
+    group: "{{ nagiosconfig_target.group }}"
+    mode: "0750"
+  loop: "{{ __nagiosconfig_cfg_dirs }}"
+
+- name: Create a temporary directory
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: nagiosconfig
+  register: __nagiosconfig_tempdir
+  changed_when: false
+
+- name: Set the temporary directory ownership
+  ansible.builtin.file:
+    path: "{{ __nagiosconfig_tempdir.path }}"
+    owner: "{{ nagiosconfig_target.user }}"
+    group: "{{ nagiosconfig_target.group }}"
+  changed_when: false
+
+- name: Create the temporary object directories
+  ansible.builtin.file:
+    path: "{{ __nagiosconfig_tempdir.path }}/{{ item }}"
+    state: directory
+    owner: "{{ nagiosconfig_target.user }}"
+    group: "{{ nagiosconfig_target.group }}"
+    mode: "0750"
+  loop: "{{ __nagiosconfig_cfg_dirs }}"
+  changed_when: false
+
+- name: Copy the live objects to the temporary directory
+  ansible.builtin.command:
+    cmd: rsync -a --owner --group --perms --itemize-changes "{{ nagiosconfig_target.objects_path }}/{{ item }}/" "{{ __nagiosconfig_tempdir.path }}/{{ item }}/"
+  register: __nagiosconfig_rsync_temp
+  loop: "{{ __nagiosconfig_cfg_dirs }}"
+  changed_when: false
+  failed_when: __nagiosconfig_rsync_temp.rc != 0
+  when: not nagiosconfig_clean_assets | bool
+
+- name: Copy the live configuration to the temporary directory
+  ansible.builtin.command:
+    cmd: rsync -a --owner --group --perms --itemize-changes "{{ nagiosconfig_target.etc_path }}/{{ item }}" "{{ __nagiosconfig_tempdir.path }}/{{ item }}"
+  register: __nagiosconfig_rsync_cfg
+  loop:
+    - nagios.cfg
+    - resource.cfg
+  changed_when: false
+  failed_when: __nagiosconfig_rsync_cfg.rc != 0
+
+- name: Point the temporary configuration at the temporary objects
+  ansible.builtin.replace:
+    path: "{{ __nagiosconfig_tempdir.path }}/nagios.cfg"
+    regexp: "{{ nagiosconfig_target.objects_path }}"
+    replace: "{{ __nagiosconfig_tempdir.path }}"
+  changed_when: false
+
+- name: Create the temporary object templates
+  ansible.builtin.template:
+    src: "{{ item }}.cfg.j2"
+    dest: "{{ __nagiosconfig_tempdir.path }}/templates/{{ item }}.cfg"
+    mode: "0664"
+    force: "{{ nagiosconfig_mode == 'always' }}"
+  loop:
+    - commands
+    - contact_templates
+    - host_templates
+    - service_templates
+    - time_templates
+
+- name: Create the temporary object assets
+  ansible.builtin.template:
+    src: "{{ item }}.cfg.j2"
+    dest: "{{ __nagiosconfig_tempdir.path }}/assets/{{ item }}.cfg"
+    mode: "0664"
+    force: "{{ nagiosconfig_mode == 'always' }}"
+  loop:
+    - contacts
+    - groups_definition
+
+- name: Find the host definition files
+  ansible.builtin.find:
+    paths: "{{ nagiosconfig_hosts_path if nagiosconfig_hosts_path.startswith('/') else role_path ~ '/' ~ nagiosconfig_hosts_path }}"
+    patterns:
+      - "*.yaml"
+      - "*.yml"
+    file_type: file
+    recurse: true
+  register: __nagiosconfig_hosts_find
+  delegate_to: localhost
+  become: false
+
+- name: Create the host and service definitions
+  ansible.builtin.include_tasks: host_definition.yml
+  loop: "{{ __nagiosconfig_hosts_find.files | map(attribute='path') | list }}"
+  loop_control:
+    loop_var: __nagiosconfig_host_file
+    label: "{{ __nagiosconfig_host_file | basename }}"
+
+- name: Validate the staged nagios configuration
+  ansible.builtin.command:
+    cmd: "{{ nagiosconfig_target.command }} -v {{ __nagiosconfig_tempdir.path }}/nagios.cfg"
+  register: __nagiosconfig_validation
+  changed_when: false
+  failed_when: false
+
+- name: Show the validation output
+  ansible.builtin.debug:
+    msg: "{{ __nagiosconfig_validation.stdout_lines }}"
+
+- name: Apply the staged objects
+  ansible.builtin.command:
+    cmd: rsync -a --owner --group --perms --delete --itemize-changes "{{ __nagiosconfig_tempdir.path }}/{{ item }}/" "{{ nagiosconfig_target.objects_path }}/{{ item }}/"
+  register: __nagiosconfig_rsync_apply
+  loop: "{{ __nagiosconfig_cfg_dirs }}"
+  changed_when: __nagiosconfig_rsync_apply.stdout | length > 0
+  failed_when: __nagiosconfig_rsync_apply.rc != 0
+  when: __nagiosconfig_validation.rc == 0
+  notify:
+    - Reload nagios core
+    - Apply nagios xi configuration
+
+- name: Remove the temporary directory
+  ansible.builtin.file:
+    path: "{{ __nagiosconfig_tempdir.path }}"
+    state: absent
+  changed_when: false
+  when: __nagiosconfig_validation.rc == 0
+
+- name: Fail when the staged configuration is invalid
+  ansible.builtin.fail:
+    msg: "The staged configuration did not pass {{ nagiosconfig_target.command }} -v. Nothing was applied, the staged tree is kept at {{ __nagiosconfig_tempdir.path }}."
+  when: __nagiosconfig_validation.rc != 0

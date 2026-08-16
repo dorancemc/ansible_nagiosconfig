@@ -1,0 +1,12 @@
+---
+__nagiosconfig_cfg_dirs:
+  - assets
+  - hosts
+  - services
+  - templates
+
+__nagiosconfig_commands: "{{ nagiosconfig_commands_default | combine(nagiosconfig_commands, recursive=true) }}"
+__nagiosconfig_contact_templates: "{{ nagiosconfig_contact_templates_default | combine(nagiosconfig_contact_templates, recursive=true) }}"
+__nagiosconfig_host_templates: "{{ nagiosconfig_host_templates_default | combine(nagiosconfig_host_templates, recursive=true) }}"
+__nagiosconfig_service_templates: "{{ nagiosconfig_service_templates_default | combine(nagiosconfig_service_templates, recursive=true) }}"
+__nagiosconfig_timeperiods: "{{ nagiosconfig_timeperiods_default | combine(nagiosconfig_timeperiods, recursive=true) }}"

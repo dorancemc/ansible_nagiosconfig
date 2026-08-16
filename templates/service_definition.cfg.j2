@@ -1,0 +1,25 @@
+{% for name, item in __nagiosconfig_services.items() if name != 'use' %}
+define service {
+    host_name    {{ __nagiosconfig_host.host_name }}
+    service_description    {{ name }}
+{% if item is string %}
+    use    {{ __nagiosconfig_services.use | default(nagiosconfig_service_template_default) }}
+    check_command    {{ item }}
+{% if __nagiosconfig_host.contact_groups is defined %}
+    contact_groups    {{ __nagiosconfig_host.contact_groups }}
+{% endif %}
+{% else %}
+{% if 'use' not in item %}
+    use    {{ __nagiosconfig_services.use | default(nagiosconfig_service_template_default) }}
+{% endif %}
+{% if __nagiosconfig_host.contact_groups is defined and 'contact_groups' not in item %}
+    contact_groups    {{ __nagiosconfig_host.contact_groups }}
+{% endif %}
+{% for key, value in item.items() %}
+    {{ key }}    {{ value }}
+{% endfor %}
+{% endif %}
+    register    1
+}
+
+{% endfor %}

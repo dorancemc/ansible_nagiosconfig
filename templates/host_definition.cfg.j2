@@ -1,0 +1,10 @@
+define host {
+    host_name    {{ __nagiosconfig_host.host_name }}
+    use    {{ __nagiosconfig_host.use | default(nagiosconfig_host_template_default) }}
+    alias    {{ __nagiosconfig_host.alias | default(__nagiosconfig_host.host_name) }}
+    address    {{ __nagiosconfig_host.address | default(__nagiosconfig_host.host_name) }}
+{% for key, value in __nagiosconfig_host.items() if key not in [ 'address', 'alias', 'host_name', 'name', 'use' ] %}
+    {{ key }}    {{ value }}
+{% endfor %}
+    register    1
+}

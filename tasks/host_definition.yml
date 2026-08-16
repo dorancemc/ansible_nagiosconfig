@@ -1,0 +1,26 @@
+---
+- name: Include the host definition variables
+  ansible.builtin.include_vars:
+    file: "{{ __nagiosconfig_host_file }}"
+    name: __nagiosconfig_host_vars
+
+- name: Set the host and service definition variables
+  ansible.builtin.set_fact:
+    __nagiosconfig_host: "{{ __nagiosconfig_host_vars._host | default({}) }}"
+    __nagiosconfig_services: "{{ __nagiosconfig_host_vars._services | default({}) }}"
+
+- name: Create the host definition
+  ansible.builtin.template:
+    src: host_definition.cfg.j2
+    dest: "{{ __nagiosconfig_tempdir.path }}/hosts/{{ __nagiosconfig_host.host_name }}.cfg"
+    mode: "0664"
+    force: "{{ nagiosconfig_mode == 'always' }}"
+  when: __nagiosconfig_host | length > 0
+
+- name: Create the service definitions
+  ansible.builtin.template:
+    src: service_definition.cfg.j2
+    dest: "{{ __nagiosconfig_tempdir.path }}/services/{{ __nagiosconfig_host.host_name }}.cfg"
+    mode: "0664"
+    force: "{{ nagiosconfig_mode == 'always' }}"
+  when: __nagiosconfig_services | length > 0

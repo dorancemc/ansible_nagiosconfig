@@ -1,0 +1,39 @@
+# https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/3/en/objectdefinitions.html#timeperiod
+---
+nagiosconfig_timeperiods: {}
+nagiosconfig_timeperiods_default:
+  24x7:
+    alias: 24 Hours A Day, 7 Days A Week
+    friday: 00:00-24:00
+    monday: 00:00-24:00
+    saturday: 00:00-24:00
+    sunday: 00:00-24:00
+    thursday: 00:00-24:00
+    tuesday: 00:00-24:00
+    wednesday: 00:00-24:00
+  24x7_sans_holidays:
+    alias: 24x7 Sans Holidays
+    friday: 00:00-24:00
+    monday: 00:00-24:00
+    saturday: 00:00-24:00
+    sunday: 00:00-24:00
+    thursday: 00:00-24:00
+    tuesday: 00:00-24:00
+    use: co-holidays
+    wednesday: 00:00-24:00
+  co-holidays:
+    alias: CO Holidays
+    august 7: 00:00-00:00 ; Dia de Boyaca
+    december 25: 00:00-00:00 ; Navidad
+    january 1: 00:00-00:00 ; Ano Nuevo
+    july 20: 00:00-00:00 ; Dia de la Independencia
+    may 1: 00:00-00:00 ; Dia del Trabajo
+  none:
+    alias: No Time Is A Good Time
+  workhours:
+    alias: Normal Work Hours
+    friday: 07:00-17:00
+    monday: 07:00-17:00
+    thursday: 07:00-17:00
+    tuesday: 07:00-17:00
+    wednesday: 07:00-17:00

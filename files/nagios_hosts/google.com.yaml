@@ -1,0 +1,9 @@
+---
+
+_host:
+  host_name: google.com
+  address: 8.8.8.8
+  hostgroups: cloud
+
+_services:
+  ping: check_ping!100.0,20%!500.0,60%

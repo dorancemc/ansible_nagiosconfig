@@ -1,0 +1,13 @@
+---
+- name: Reload nagios core
+  ansible.builtin.service:
+    name: "{{ nagiosconfig_target.service_name }}"
+    state: reloaded
+  when: nagiosconfig_flavor == 'core'
+
+- name: Apply nagios xi configuration
+  ansible.builtin.command:
+    cmd: /usr/local/nagiosxi/scripts/reconfigure_nagios.sh
+  register: __nagiosconfig_reconfigure
+  changed_when: __nagiosconfig_reconfigure.rc == 0
+  when: nagiosconfig_flavor == 'xi'

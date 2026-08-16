@@ -1,0 +1,9 @@
+{% for name, item in __nagiosconfig_service_templates.items() %}
+define service {
+    name    {{ name }}
+{% for key, value in item.items() %}
+    {{ key }}    {{ value }}
+{% endfor %}
+}
+
+{% endfor %}

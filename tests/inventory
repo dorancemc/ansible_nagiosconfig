@@ -1,0 +1,2 @@
+core ansible_host=192.168.243.220 ansible_user=vagrant ansible_connection=ssh ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+xi ansible_host=192.168.243.221 ansible_user=vagrant ansible_connection=ssh ansible_ssh_common_args='-o StrictHostKeyChecking=no'

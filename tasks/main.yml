@@ -1,0 +1,13 @@
+---
+- name: Set target dependent variables
+  ansible.builtin.import_tasks: vars.yml
+  tags:
+    - nagiosconfig
+    - nagiosconfig-config
+
+- name: Configure nagios monitoring objects
+  ansible.builtin.import_tasks: objects.yml
+  tags:
+    - nagiosconfig
+    - nagiosconfig-config
+  when: nagiosconfig_mode != 'never'

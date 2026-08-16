@@ -1,0 +1,26 @@
+---
+- name: Validate role parameters
+  ansible.builtin.assert:
+    that:
+      - nagiosconfig_flavor in [ 'core', 'xi' ]
+      - nagiosconfig_mode in [ 'always', 'never', 'once' ]
+    fail_msg: nagiosconfig_flavor must be core or xi, nagiosconfig_mode must be always, never or once.
+
+- name: Load target dependent variables
+  ansible.builtin.include_vars:
+    file: "{{ lookup('ansible.builtin.first_found', __nagiosconfig_target_files) }}"
+    name: __nagiosconfig_target_defaults
+  vars:
+    __nagiosconfig_target_files:
+      files:
+        - "{{ nagiosconfig_flavor }}-{{ ansible_facts['distribution'] }}_{{ ansible_facts['distribution_major_version'] }}.yaml"
+        - "{{ nagiosconfig_flavor }}-{{ ansible_facts['distribution'] }}.yaml"
+        - "{{ nagiosconfig_flavor }}-{{ ansible_facts['os_family'] }}_{{ ansible_facts['distribution_major_version'] }}.yaml"
+        - "{{ nagiosconfig_flavor }}-{{ ansible_facts['os_family'] }}.yaml"
+        - "{{ nagiosconfig_flavor }}.yaml"
+      paths:
+        - "{{ role_path }}/vars"
+
+- name: Set target parameters
+  ansible.builtin.set_fact:
+    nagiosconfig_target: "{{ __nagiosconfig_target_defaults | combine(nagiosconfig_target, recursive=true) }}"

@@ -1,0 +1,14 @@
+# https://assets.nagios.com/downloads/nagioscore/docs/nagioscore/3/en/objectdefinitions.html#contact
+---
+# the password and state keys are ignored here and kept in the schema so the
+# same dict can be shared with the role that owns the htpasswd file
+nagiosconfig_contacts:
+  nagiosadmin:
+    alias: Nagios Admin
+    contactgroups: admins
+    use: none-notifications
+
+nagiosconfig_contactgroups:
+  admins:
+    alias: Nagios Admins
+  agents: {}

@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: Dorance Martinez
+  company: DMCi.co
+  description: Configure Nagios monitoring objects on Nagios Core and Nagios XI.
+  role_name: ansible_nagiosconfig
+  license: Apache-2.0
+  min_ansible_version: "2.20"
+  platforms: []
+  galaxy_tags:
+    - nagios
+    - nagioscore
+    - nagiosxi
+    - monitoring
+    - linux
+
+dependencies: []
