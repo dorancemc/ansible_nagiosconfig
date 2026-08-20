@@ -1,10 +1,13 @@
+{% set __nagiosconfig_col = __nagiosconfig_host.keys() | map('length') | max %}
+{% set __nagiosconfig_fmt = "{:<" ~ __nagiosconfig_col | string ~ "}    {}" %}
+
 define host {
-    host_name    {{ __nagiosconfig_host.host_name }}
-    use    {{ __nagiosconfig_host.use | default(nagiosconfig_host_template_default) }}
-    alias    {{ __nagiosconfig_host.alias | default(__nagiosconfig_host.host_name) }}
-    address    {{ __nagiosconfig_host.address | default(__nagiosconfig_host.host_name) }}
+    {{ __nagiosconfig_fmt.format("host_name", __nagiosconfig_host.host_name) }}
+    {{ __nagiosconfig_fmt.format("use", __nagiosconfig_host.use | default(nagiosconfig_host_template_default)) }}
+    {{ __nagiosconfig_fmt.format("alias", __nagiosconfig_host.alias | default(__nagiosconfig_host.host_name)) }}
+    {{ __nagiosconfig_fmt.format("address", __nagiosconfig_host.address | default(__nagiosconfig_host.host_name)) }}
 {% for key, value in __nagiosconfig_host.items() if key not in [ 'address', 'alias', 'host_name', 'name', 'use' ] %}
-    {{ key }}    {{ value }}
+    {{ __nagiosconfig_fmt.format(key, value) }}
 {% endfor %}
-    register    1
+    {{ __nagiosconfig_fmt.format("register", "1") }}
 }

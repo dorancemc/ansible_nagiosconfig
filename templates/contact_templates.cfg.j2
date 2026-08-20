@@ -1,9 +1,8 @@
 {% for name, item in __nagiosconfig_contact_templates.items() %}
 define contact {
-    name    {{ name }}
+    name   {{ name }}
 {% for key, value in item.items() %}
-    {{ key }}    {{ value }}
+    {{ key }}   {{ value }}
 {% endfor %}
 }
-
 {% endfor %}

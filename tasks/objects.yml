@@ -54,6 +54,7 @@
     suffix: nagiosconfig
   register: __nagiosconfig_tempdir
   changed_when: false
+  check_mode: false
 
 - name: Set the temporary directory ownership
   ansible.builtin.file:
@@ -61,49 +62,66 @@
     owner: "{{ nagiosconfig_target.user }}"
     group: "{{ nagiosconfig_target.group }}"
   changed_when: false
+  check_mode: false
+
+- name: Set the staged objects root
+  ansible.builtin.set_fact:
+    __nagiosconfig_stage_dir: "{{ __nagiosconfig_tempdir.path }}/objects"
+
+- name: Create the staged objects root
+  ansible.builtin.file:
+    path: "{{ __nagiosconfig_stage_dir }}"
+    state: directory
+    owner: "{{ nagiosconfig_target.user }}"
+    group: "{{ nagiosconfig_target.group }}"
+    mode: "0750"
+  changed_when: false
+  check_mode: false
 
 - name: Create the temporary object directories
   ansible.builtin.file:
-    path: "{{ __nagiosconfig_tempdir.path }}/{{ item }}"
+    path: "{{ __nagiosconfig_stage_dir }}/{{ item }}"
     state: directory
     owner: "{{ nagiosconfig_target.user }}"
     group: "{{ nagiosconfig_target.group }}"
     mode: "0750"
   loop: "{{ __nagiosconfig_cfg_dirs }}"
   changed_when: false
+  check_mode: false
 
 - name: Copy the live objects to the temporary directory
   ansible.builtin.command:
-    cmd: rsync -a --owner --group --perms --itemize-changes "{{ nagiosconfig_target.objects_path }}/{{ item }}/" "{{ __nagiosconfig_tempdir.path }}/{{ item }}/"
+    cmd: rsync -a --owner --group --perms --itemize-changes "{{ nagiosconfig_target.objects_path }}/{{ item }}/" "{{ __nagiosconfig_stage_dir }}/{{ item }}/"
   register: __nagiosconfig_rsync_temp
   loop: "{{ __nagiosconfig_cfg_dirs }}"
   changed_when: false
   failed_when: __nagiosconfig_rsync_temp.rc != 0
+  check_mode: false
   when: not nagiosconfig_clean_assets | bool
 
 - name: Copy the live configuration to the temporary directory
   ansible.builtin.command:
-    cmd: rsync -a --owner --group --perms --itemize-changes "{{ nagiosconfig_target.etc_path }}/{{ item }}" "{{ __nagiosconfig_tempdir.path }}/{{ item }}"
+    cmd: rsync -a --owner --group --perms --itemize-changes "{{ nagiosconfig_target.etc_path }}/nagios.cfg" "{{ __nagiosconfig_tempdir.path }}/nagios.cfg"
   register: __nagiosconfig_rsync_cfg
-  loop:
-    - nagios.cfg
-    - resource.cfg
   changed_when: false
   failed_when: __nagiosconfig_rsync_cfg.rc != 0
+  check_mode: false
 
 - name: Point the temporary configuration at the temporary objects
   ansible.builtin.replace:
     path: "{{ __nagiosconfig_tempdir.path }}/nagios.cfg"
-    regexp: "{{ nagiosconfig_target.objects_path }}"
-    replace: "{{ __nagiosconfig_tempdir.path }}"
+    regexp: '^([ \t]*cfg_dir[ \t]*=[ \t]*){{ nagiosconfig_target.objects_path | regex_escape }}(?=/|[ \t]*$)'
+    replace: '\1{{ __nagiosconfig_stage_dir }}'
   changed_when: false
+  check_mode: false
 
 - name: Create the temporary object templates
   ansible.builtin.template:
     src: "{{ item }}.cfg.j2"
-    dest: "{{ __nagiosconfig_tempdir.path }}/templates/{{ item }}.cfg"
+    dest: "{{ __nagiosconfig_stage_dir }}/templates/{{ item }}.cfg"
     mode: "0664"
     force: "{{ nagiosconfig_mode == 'always' }}"
+  check_mode: false
   loop:
     - commands
     - contact_templates
@@ -114,16 +132,17 @@
 - name: Create the temporary object assets
   ansible.builtin.template:
     src: "{{ item }}.cfg.j2"
-    dest: "{{ __nagiosconfig_tempdir.path }}/assets/{{ item }}.cfg"
+    dest: "{{ __nagiosconfig_stage_dir }}/assets/{{ item }}.cfg"
     mode: "0664"
     force: "{{ nagiosconfig_mode == 'always' }}"
+  check_mode: false
   loop:
     - contacts
     - groups_definition
 
 - name: Find the host definition files
   ansible.builtin.find:
-    paths: "{{ nagiosconfig_hosts_path if nagiosconfig_hosts_path.startswith('/') else role_path ~ '/' ~ nagiosconfig_hosts_path }}"
+    paths: "{{ __nagiosconfig_hosts_dir }}"
     patterns:
       - "*.yaml"
       - "*.yml"
@@ -146,6 +165,7 @@
   register: __nagiosconfig_validation
   changed_when: false
   failed_when: false
+  check_mode: false
 
 - name: Show the validation output
   ansible.builtin.debug:
@@ -153,7 +173,7 @@
 
 - name: Apply the staged objects
   ansible.builtin.command:
-    cmd: rsync -a --owner --group --perms --delete --itemize-changes "{{ __nagiosconfig_tempdir.path }}/{{ item }}/" "{{ nagiosconfig_target.objects_path }}/{{ item }}/"
+    cmd: rsync -a --owner --group --perms --delete --itemize-changes "{{ __nagiosconfig_stage_dir }}/{{ item }}/" "{{ nagiosconfig_target.objects_path }}/{{ item }}/"
   register: __nagiosconfig_rsync_apply
   loop: "{{ __nagiosconfig_cfg_dirs }}"
   changed_when: __nagiosconfig_rsync_apply.stdout | length > 0
@@ -168,9 +188,10 @@
     path: "{{ __nagiosconfig_tempdir.path }}"
     state: absent
   changed_when: false
+  check_mode: false
   when: __nagiosconfig_validation.rc == 0
 
 - name: Fail when the staged configuration is invalid
   ansible.builtin.fail:
-    msg: "The staged configuration did not pass {{ nagiosconfig_target.command }} -v. Nothing was applied, the staged tree is kept at {{ __nagiosconfig_tempdir.path }}."
+    msg: "The staged configuration did not pass {{ nagiosconfig_target.command }} -v. Nothing was applied, the staged tree is kept at {{ __nagiosconfig_stage_dir }} with its main configuration at {{ __nagiosconfig_tempdir.path }}/nagios.cfg."
   when: __nagiosconfig_validation.rc != 0

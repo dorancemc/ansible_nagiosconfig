@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Test ansible_nagiosconfig role
+  hosts: all
   become: true
   roles:
-    - role: ../../ansible_nagiosconfig
+    - ansible_nagiosconfig

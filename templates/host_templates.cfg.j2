@@ -1,9 +1,8 @@
 {% for name, item in __nagiosconfig_host_templates.items() %}
 define host {
-    name    {{ name }}
+    name   {{ name }}
 {% for key, value in item.items() %}
-    {{ key }}    {{ value }}
+    {{ key }}   {{ value }}
 {% endfor %}
 }
-
 {% endfor %}

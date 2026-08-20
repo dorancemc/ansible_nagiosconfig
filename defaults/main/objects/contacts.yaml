@@ -11,4 +11,3 @@ nagiosconfig_contacts:
 nagiosconfig_contactgroups:
   admins:
     alias: Nagios Admins
-  agents: {}

@@ -1,21 +1,20 @@
 {% for name, item in nagiosconfig_contacts.items() if item.state | default('present') != 'absent' %}
 define contact {
-    contact_name    {{ name }}
-    email    {{ item.email | default(name) }}
-    alias    {{ item.alias | default(name) }}
-    use    {{ item.use | default('generic-contact') }}
+  contact_name    {{ name }}
+  email           {{ item.email | default(name) }}
+  alias           {{ item.alias | default(name) }}
+  use             {{ item.use | default('generic-contact') }}
 {% for key, value in item.items() if key not in [ 'alias', 'email', 'password', 'state', 'use' ] %}
-    {{ key }}    {{ value }}
+  {{ key }} {{ value }}
 {% endfor %}
 }
-
 {% endfor %}
+
 {% for name, item in nagiosconfig_contactgroups.items() %}
 define contactgroup {
-    contactgroup_name    {{ name }}
+  contactgroup_name       {{ name }}
 {% for key, value in item.items() %}
-    {{ key }}    {{ value }}
+  {{ key }} {{ value }}
 {% endfor %}
 }
-
 {% endfor %}

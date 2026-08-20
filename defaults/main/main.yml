@@ -15,6 +15,10 @@ nagiosconfig_clean_assets: false
 # the live nagios.cfg, which this role never writes
 nagiosconfig_assert_cfg_dirs: true
 
+# shared object files, loaded one by one so the tenant dicts merge instead of
+# replacing each other; empty disables the lookup
+nagiosconfig_base_path: ""
+
 # relative paths are resolved against the role directory
 nagiosconfig_hosts_path: files/nagios_hosts
 
@@ -22,8 +26,8 @@ nagiosconfig_host_template_default: server
 nagiosconfig_service_template_default: generic-service
 
 nagiosconfig_hostgroups:
-  cloud: {}
   local: {}
+  cloud: {}
 
 nagiosconfig_servicegroups:
   localresources: {}
