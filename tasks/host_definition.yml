@@ -9,7 +9,9 @@
     mode: "0664"
     force: "{{ nagiosconfig_mode == 'always' }}"
   check_mode: false
-  when: __nagiosconfig_host | length > 0
+  when:
+    - __nagiosconfig_host | length > 0
+    - __nagiosconfig_host.host_name not in __nagiosconfig_reserved.hosts | default([])
 
 - name: Create the service definitions
   vars:
@@ -22,4 +24,6 @@
     mode: "0664"
     force: "{{ nagiosconfig_mode == 'always' }}"
   check_mode: false
-  when: __nagiosconfig_services | length > 0
+  when:
+    - __nagiosconfig_services | length > 0
+    - __nagiosconfig_host.host_name not in __nagiosconfig_reserved.hosts | default([])

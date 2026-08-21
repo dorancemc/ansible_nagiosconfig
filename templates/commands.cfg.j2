@@ -1,4 +1,4 @@
-{% for name, command_line in __nagiosconfig_commands.items() %}
+{% for name, command_line in __nagiosconfig_commands.items() if name not in __nagiosconfig_reserved.commands | default([]) %}
 define command {
     command_name    {{ name }}
     command_line    {{ command_line }}

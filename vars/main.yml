@@ -1,6 +1,8 @@
 ---
 __nagiosconfig_hosts_dir: "{{ nagiosconfig_hosts_path if nagiosconfig_hosts_path.startswith('/') else role_path ~ '/' ~ nagiosconfig_hosts_path }}"
 
+__nagiosconfig_reserved: "{{ nagiosconfig_reserved_objects if nagiosconfig_flavor == 'xi' else {} }}"
+
 __nagiosconfig_cfg_dirs:
   - assets
   - hosts

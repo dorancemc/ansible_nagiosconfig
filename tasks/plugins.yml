@@ -1,0 +1,14 @@
+---
+- name: Install the extra plugins
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ __nagiosconfig_plugin.value.url }}"
+    dest: "{{ nagiosconfig_target.plugins_path }}/{{ __nagiosconfig_plugin.key }}"
+    checksum: "{{ __nagiosconfig_plugin.value.checksum | default(omit) }}"
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ nagiosconfig_extra_plugins | dict2items }}"
+  loop_control:
+    loop_var: __nagiosconfig_plugin
+    label: "{{ __nagiosconfig_plugin.key }}"

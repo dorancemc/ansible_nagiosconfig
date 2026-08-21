@@ -11,6 +11,12 @@
     - nagiosconfig
     - nagiosconfig-config
 
+- name: Install the extra plugins
+  ansible.builtin.import_tasks: plugins.yml
+  tags:
+    - nagiosconfig
+    - nagiosconfig-config
+
 - name: Configure nagios monitoring objects
   ansible.builtin.import_tasks: objects.yml
   tags:

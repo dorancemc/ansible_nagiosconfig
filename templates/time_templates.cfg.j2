@@ -1,4 +1,4 @@
-{% for name, item in __nagiosconfig_timeperiods.items() %}
+{% for name, item in __nagiosconfig_timeperiods.items() if name not in __nagiosconfig_reserved.timeperiods | default([]) %}
 define timeperiod {
     name   {{ name }}
     timeperiod_name   {{ name }}

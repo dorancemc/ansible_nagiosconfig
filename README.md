@@ -86,6 +86,45 @@ role this one replaced had one. The notification commands add their own slash, s
 `templates/commands.cfg` is rewritten once on every migrated host, and those two `command_line` lines
 are the only reason — anything else in that file is real drift.
 
+## Objects Nagios XI Already Owns
+
+Nagios XI ships its own object library in `/usr/local/nagios/etc`: 193 commands, 162
+templates, timeperiods, contacts and groups. Twenty nine of those names are also in this
+role's defaults, and a duplicate template `name` is fatal — Nagios aborts object
+registration and `nagios -v` fails, which then cascades into misleading errors such as
+`Invalid max_check_attempts value` on hosts whose template never registered.
+
+With `nagiosconfig_flavor: xi` the role does not emit the names listed in
+`nagiosconfig_reserved_objects`: three templates (`generic-contact`, `generic-host`,
+`generic-service`), four timeperiods, the `nagiosadmin` contact, the `admins` contactgroup
+and twenty commands. Everything else is written normally, and on `core` nothing is
+filtered at all.
+
+Two consequences worth knowing before pointing tenant data at Nagios XI:
+
+- Objects that referenced those names now resolve to XI's definitions, which are not
+  identical. A service using `generic-service` inherits XI's template, not the one this
+  role builds on top of `default-service`.
+- If your `check_ping` or `check_http` carry flags the stock ones do not — forcing IPv4
+  with `-4`, for instance — those flags are lost on XI, because the stock command wins.
+  Give the command a name of your own if that matters.
+
+The list is a default like any other: an XI version that ships different objects only
+needs `nagiosconfig_reserved_objects` overridden in the inventory.
+
+## Extra Plugins
+
+`nagiosconfig_extra_plugins` downloads plugins that the commands reference and the
+installation does not ship, into the `plugins_path` of the target. It is a dictionary keyed
+by the destination file name, each entry taking a `url` and an optional `checksum`.
+
+It lives here rather than in the role that installs the engine because a command and the
+plugin it calls are the same decision, and because Nagios XI installs no plugins of ours at
+all: the commands would resolve to files that do not exist on that host.
+
+Nagios runs each of these files on every check, so whoever controls the URL runs code on the
+monitoring server. Pin a commit in the URL and set the checksum.
+
 ## How It Works
 
 The role stages every object file in a temporary directory built from the live configuration, validates it with `nagios -v`, and only then synchronizes it onto the target. An invalid configuration is never applied.

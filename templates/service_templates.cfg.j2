@@ -1,4 +1,4 @@
-{% for name, item in __nagiosconfig_service_templates.items() %}
+{% for name, item in __nagiosconfig_service_templates.items() if name not in __nagiosconfig_reserved.service_templates | default([]) %}
 define service {
     name   {{ name }}
 {% for key, value in item.items() %}

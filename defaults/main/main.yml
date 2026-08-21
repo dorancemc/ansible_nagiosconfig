@@ -22,6 +22,10 @@ nagiosconfig_base_path: ""
 # relative paths are resolved against the role directory
 nagiosconfig_hosts_path: files/nagios_hosts
 
+# plugins que los comandos invocan y que no trae la instalacion: se descargan
+# al plugins_path del target, con checksum
+nagiosconfig_extra_plugins: {}
+
 nagiosconfig_host_template_default: server
 nagiosconfig_service_template_default: generic-service
 

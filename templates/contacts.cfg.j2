@@ -1,4 +1,4 @@
-{% for name, item in nagiosconfig_contacts.items() if item.state | default('present') != 'absent' %}
+{% for name, item in nagiosconfig_contacts.items() if item.state | default('present') != 'absent' and name not in __nagiosconfig_reserved.contacts | default([]) %}
 define contact {
   contact_name    {{ name }}
   email           {{ item.email | default(name) }}
@@ -10,7 +10,7 @@ define contact {
 }
 {% endfor %}
 
-{% for name, item in nagiosconfig_contactgroups.items() %}
+{% for name, item in nagiosconfig_contactgroups.items() if name not in __nagiosconfig_reserved.contactgroups | default([]) %}
 define contactgroup {
   contactgroup_name       {{ name }}
 {% for key, value in item.items() %}

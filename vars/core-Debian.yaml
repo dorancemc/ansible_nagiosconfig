@@ -3,6 +3,7 @@ command: /usr/sbin/nagios4
 etc_path: /etc/nagios4
 group: nagios
 objects_path: /etc/nagios4
+plugins_path: /usr/lib/nagios/plugins
 service_name: nagios4
 url_path: nagios4
 user: nagios

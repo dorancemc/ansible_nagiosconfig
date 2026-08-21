@@ -6,6 +6,7 @@
       - nagiosconfig_target.etc_path | default('') | length > 0
       - nagiosconfig_target.group | default('') | length > 0
       - nagiosconfig_target.objects_path | default('') | length > 0
+      - nagiosconfig_target.plugins_path | default('') | length > 0
       - nagiosconfig_target.user | default('') | length > 0
     fail_msg: nagiosconfig_target is incomplete.
 
