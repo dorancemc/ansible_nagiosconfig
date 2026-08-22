@@ -131,6 +131,8 @@ The role stages every object file in a temporary directory built from the live c
 
 Only the object directories are staged, under an `objects/` subdirectory of the temporary directory. The copy of `nagios.cfg` sits one level above it, outside every `cfg_dir`, so it is never read as an object file — which matters on Nagios XI, where the single `cfg_dir=/usr/local/nagios/etc/static` makes the staged objects root recursive. Of that copy only the `cfg_dir` entries pointing at the object path are rewritten: `resource_file` and any other `cfg_file` or `cfg_dir` keep pointing at the live files, so validation runs against the real configuration of the host.
 
+The temporary directory is `nagioscfg-tmp-<random>` under `nagiosconfig_tempdir_base` (`/tmp`). A run that dies between staging and apply leaves it behind, so every run sweeps the `nagioscfg-tmp-*` directories of earlier runs before creating its own — which assumes one run at a time per target. Set `nagiosconfig_tempdir_cleanup: false` to keep a failed tree for inspection.
+
 Applying the change reloads the service on Nagios Core and runs `reconfigure_nagios.sh` on Nagios XI.
 
 ## License

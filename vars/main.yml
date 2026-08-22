@@ -9,6 +9,8 @@ __nagiosconfig_cfg_dirs:
   - services
   - templates
 
+__nagiosconfig_tempdir_prefix: nagioscfg-tmp-
+
 __nagiosconfig_commands: "{{ nagiosconfig_commands_default | combine(nagiosconfig_commands, recursive=true) }}"
 __nagiosconfig_contact_templates: "{{ nagiosconfig_contact_templates_default | combine(nagiosconfig_contact_templates, recursive=true) }}"
 __nagiosconfig_host_templates: "{{ nagiosconfig_host_templates_default | combine(nagiosconfig_host_templates, recursive=true) }}"

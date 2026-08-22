@@ -49,10 +49,30 @@
     mode: "0750"
   loop: "{{ __nagiosconfig_cfg_dirs }}"
 
+- name: Find the staging directories left by previous runs
+  ansible.builtin.find:
+    paths: "{{ nagiosconfig_tempdir_base }}"
+    patterns: "{{ __nagiosconfig_tempdir_prefix }}*"
+    file_type: directory
+    recurse: false
+  register: __nagiosconfig_tempdir_stale
+  changed_when: false
+  check_mode: false
+  when: nagiosconfig_tempdir_cleanup | bool
+
+- name: Remove the staging directories left by previous runs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ __nagiosconfig_tempdir_stale.files | default([]) | map(attribute='path') | list }}"
+  loop_control:
+    label: "{{ item | basename }}"
+
 - name: Create a temporary directory
   ansible.builtin.tempfile:
     state: directory
-    suffix: nagiosconfig
+    path: "{{ nagiosconfig_tempdir_base }}"
+    prefix: "{{ __nagiosconfig_tempdir_prefix }}"
   register: __nagiosconfig_tempdir
   changed_when: false
   check_mode: false
@@ -194,5 +214,5 @@
 
 - name: Fail when the staged configuration is invalid
   ansible.builtin.fail:
-    msg: "The staged configuration did not pass {{ nagiosconfig_target.command }} -v. Nothing was applied, the staged tree is kept at {{ __nagiosconfig_stage_dir }} with its main configuration at {{ __nagiosconfig_tempdir.path }}/nagios.cfg."
+    msg: "The staged configuration did not pass {{ nagiosconfig_target.command }} -v. Nothing was applied, the staged tree is kept at {{ __nagiosconfig_stage_dir }} with its main configuration at {{ __nagiosconfig_tempdir.path }}/nagios.cfg. The next run of this role removes it, set nagiosconfig_tempdir_cleanup=false to keep it."
   when: __nagiosconfig_validation.rc != 0
