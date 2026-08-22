@@ -19,3 +19,5 @@ First release. Extracted from `ansible_nagioscore`, which from 4.0.0 installs Na
 - `nagiosconfig_reserved_objects`: the commands, templates, contacts and hosts Nagios XI already ships, skipped on `xi` so they are not defined twice.
 - `nagiosconfig_extra_plugins` (`tasks/plugins.yml`): downloads extra check scripts to the target's plugins path, with checksum.
 - `nagiosconfig_mode: once|always|never` and `nagiosconfig_clean_assets` to decide which objects the role owns and which it deletes.
+- `sso` as a control key on a contact: excluded from the rendered `define contact` so external roles can flag which contacts are allowed to authenticate without Nagios seeing an unknown directive.
+- `_TENANT` on every host definition, taken from the name of the folder the host file lives in under `nagiosconfig_hosts_path`. A host that declares `_TENANT` itself keeps its own value, and a host file sitting directly in the hosts root gets nothing. The macro is `$_HOSTTENANT$`, which lets the perfdata template of `nagios.cfg` carry the tenant into whatever consumes the performance data.

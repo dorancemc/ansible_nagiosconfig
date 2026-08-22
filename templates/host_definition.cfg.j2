@@ -9,5 +9,8 @@ define host {
 {% for key, value in __nagiosconfig_host.items() if key not in [ 'address', 'alias', 'host_name', 'name', 'use' ] %}
     {{ __nagiosconfig_fmt.format(key, value) }}
 {% endfor %}
+{% if __nagiosconfig_tenant | default('') | length > 0 and '_TENANT' not in __nagiosconfig_host %}
+    {{ __nagiosconfig_fmt.format("_TENANT", __nagiosconfig_tenant) }}
+{% endif %}
     {{ __nagiosconfig_fmt.format("register", "1") }}
 }
