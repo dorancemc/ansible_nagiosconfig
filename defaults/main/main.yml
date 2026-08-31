@@ -23,6 +23,8 @@ nagiosconfig_tempdir_base: /tmp
 # false keeps a failed tree around for inspection
 nagiosconfig_tempdir_cleanup: true
 
+# these objects are the same for Core and XI, so an inventory keeps them in the
+# group that is the parent of both products, not in the group of one of them
 # shared object files, loaded one by one so the tenant dicts merge instead of
 # replacing each other; empty disables the lookup
 nagiosconfig_base_path: ""
