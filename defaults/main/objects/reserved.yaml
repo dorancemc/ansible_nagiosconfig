@@ -1,0 +1,43 @@
+---
+# Objects Nagios XI already defines in /usr/local/nagios/etc: a duplicate
+# template definition aborts registration and nagios -v fails. Applied only
+# with nagiosconfig_flavor xi; on core nothing is filtered.
+nagiosconfig_reserved_objects:
+  commands:
+    - check_dhcp
+    - check_dns
+    - check_ftp
+    - check_hpjd
+    - check_http
+    - check_imap
+    - check_local_disk
+    - check_local_load
+    - check_local_mrtgtraf
+    - check_local_procs
+    - check_local_users
+    - check_nrpe
+    - check_nt
+    - check_ping
+    - check_pop
+    - check_smtp
+    - check_snmp
+    - check_ssh
+    - check_tcp
+    - check_udp
+  contact_templates:
+    - generic-contact
+  contactgroups:
+    - admins
+  contacts:
+    - nagiosadmin
+  hosts:
+    - localhost
+  host_templates:
+    - generic-host
+  service_templates:
+    - generic-service
+  timeperiods:
+    - 24x7
+    - 24x7_sans_holidays
+    - none
+    - workhours

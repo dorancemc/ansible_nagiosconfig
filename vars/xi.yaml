@@ -3,6 +3,7 @@ command: /usr/local/nagios/bin/nagios
 etc_path: /usr/local/nagios/etc
 group: nagios
 objects_path: /usr/local/nagios/etc/static
+plugins_path: /usr/local/nagios/libexec
 service_name: nagios
 url_path: nagios
 user: nagios

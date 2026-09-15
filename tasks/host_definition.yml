@@ -1,26 +1,30 @@
 ---
-- name: Include the host definition variables
-  ansible.builtin.include_vars:
-    file: "{{ __nagiosconfig_host_file }}"
-    name: __nagiosconfig_host_vars
-
-- name: Set the host and service definition variables
-  ansible.builtin.set_fact:
-    __nagiosconfig_host: "{{ __nagiosconfig_host_vars._host | default({}) }}"
-    __nagiosconfig_services: "{{ __nagiosconfig_host_vars._services | default({}) }}"
-
 - name: Create the host definition
+  vars:
+    __nagiosconfig_host_vars: "{{ lookup('ansible.builtin.file', __nagiosconfig_host_file) | from_yaml }}"
+    __nagiosconfig_host: "{{ __nagiosconfig_host_vars._host | default({}) }}"
+    __nagiosconfig_tenant: "{{ __nagiosconfig_host_file | dirname | basename if __nagiosconfig_host_file | dirname != __nagiosconfig_hosts_dir else '' }}"
   ansible.builtin.template:
     src: host_definition.cfg.j2
-    dest: "{{ __nagiosconfig_tempdir.path }}/hosts/{{ __nagiosconfig_host.host_name }}.cfg"
+    dest: "{{ __nagiosconfig_stage_dir }}/hosts/{{ __nagiosconfig_host.host_name }}.cfg"
     mode: "0664"
     force: "{{ nagiosconfig_mode == 'always' }}"
-  when: __nagiosconfig_host | length > 0
+  check_mode: false
+  when:
+    - __nagiosconfig_host | length > 0
+    - __nagiosconfig_host.host_name not in __nagiosconfig_reserved.hosts | default([])
 
 - name: Create the service definitions
+  vars:
+    __nagiosconfig_host_vars: "{{ lookup('ansible.builtin.file', __nagiosconfig_host_file) | from_yaml }}"
+    __nagiosconfig_host: "{{ __nagiosconfig_host_vars._host | default({}) }}"
+    __nagiosconfig_services: "{{ __nagiosconfig_host_vars._services | default({}) }}"
   ansible.builtin.template:
     src: service_definition.cfg.j2
-    dest: "{{ __nagiosconfig_tempdir.path }}/services/{{ __nagiosconfig_host.host_name }}.cfg"
+    dest: "{{ __nagiosconfig_stage_dir }}/services/{{ __nagiosconfig_host.host_name }}.cfg"
     mode: "0664"
     force: "{{ nagiosconfig_mode == 'always' }}"
-  when: __nagiosconfig_services | length > 0
+  check_mode: false
+  when:
+    - __nagiosconfig_services | length > 0
+    - __nagiosconfig_host.host_name not in __nagiosconfig_reserved.hosts | default([])

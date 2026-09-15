@@ -1,0 +1,33 @@
+---
+- name: Find the shared monitoring object files
+  ansible.builtin.find:
+    paths: "{{ nagiosconfig_base_path }}"
+    patterns: ['*.yaml', '*.yml']
+    recurse: true
+  register: __nagiosconfig_base_find
+  delegate_to: localhost
+  become: false
+  changed_when: false
+  when: nagiosconfig_base_path | length > 0
+
+- name: Find the tenant definition files
+  ansible.builtin.find:
+    paths: "{{ __nagiosconfig_hosts_dir }}"
+    patterns: ['_tenant.yaml']
+    recurse: true
+  register: __nagiosconfig_tenant_find
+  delegate_to: localhost
+  become: false
+  changed_when: false
+  when: nagiosconfig_hosts_path | length > 0
+
+- name: Load the monitoring objects from the inventory
+  ansible.builtin.include_vars:
+    file: "{{ __nagiosconfig_object_file }}"
+    hash_behaviour: merge
+  loop: >-
+    {{ ((__nagiosconfig_base_find.files | default([])) + (__nagiosconfig_tenant_find.files | default([])))
+       | map(attribute='path') | sort }}
+  loop_control:
+    loop_var: __nagiosconfig_object_file
+    label: "{{ __nagiosconfig_object_file | basename }}"

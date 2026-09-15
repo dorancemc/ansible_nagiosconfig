@@ -15,15 +15,33 @@ nagiosconfig_clean_assets: false
 # the live nagios.cfg, which this role never writes
 nagiosconfig_assert_cfg_dirs: true
 
+# root where the staging tree is created; the pre-run cleanup never looks
+# outside this path
+nagiosconfig_tempdir_base: /tmp
+
+# remove the staging trees left by previous runs before creating a new one;
+# false keeps a failed tree around for inspection
+nagiosconfig_tempdir_cleanup: true
+
+# these objects are the same for Core and XI, so an inventory keeps them in the
+# group that is the parent of both products, not in the group of one of them
+# shared object files, loaded one by one so the tenant dicts merge instead of
+# replacing each other; empty disables the lookup
+nagiosconfig_base_path: ""
+
 # relative paths are resolved against the role directory
 nagiosconfig_hosts_path: files/nagios_hosts
+
+# plugins the commands invoke that the installation does not ship: downloaded
+# to the target plugins_path, with checksum
+nagiosconfig_extra_plugins: {}
 
 nagiosconfig_host_template_default: server
 nagiosconfig_service_template_default: generic-service
 
 nagiosconfig_hostgroups:
-  cloud: {}
   local: {}
+  cloud: {}
 
 nagiosconfig_servicegroups:
   localresources: {}

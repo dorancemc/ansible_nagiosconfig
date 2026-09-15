@@ -3,20 +3,20 @@
 nagiosconfig_contact_templates: {}
 nagiosconfig_contact_templates_default:
   generic-contact:
-    host_notification_commands: notify_host_by_email
-    host_notification_options: d,u,r,f,s
-    host_notification_period: 24x7
-    register: 0
-    service_notification_commands: notify_service_by_email
-    service_notification_options: w,u,c,r,f,s
     service_notification_period: 24x7
-  contacto-generico:
-    host_notification_options: d,u,r
+    host_notification_period: 24x7
+    service_notification_options: w,u,c,r,f,s
+    host_notification_options: d,u,r,f,s
+    service_notification_commands: notify_service_by_email
+    host_notification_commands: notify_host_by_email
     register: 0
-    service_notification_options: w,c,r
-    use: generic-contact
   none-notifications:
+    use: generic-contact
+    service_notification_period: none
     host_notification_period: none
     register: 0
-    service_notification_period: none
+  contacto-generico:
     use: generic-contact
+    service_notification_options: w,c,r
+    host_notification_options: d,u,r
+    register: 0
