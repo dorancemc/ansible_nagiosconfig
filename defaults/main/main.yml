@@ -32,6 +32,12 @@ nagiosconfig_base_path: ""
 # relative paths are resolved against the role directory
 nagiosconfig_hosts_path: files/nagios_hosts
 
+# tenants, directory names under nagiosconfig_hosts_path, whose hosts and
+# services are rendered; a list or a comma separated string, empty renders every
+# tenant. Shared objects are still rendered in full, and nagiosconfig_clean_assets
+# is ignored while it is set
+nagiosconfig_tenants: []
+
 # plugins the commands invoke that the installation does not ship: downloaded
 # to the target plugins_path, with checksum
 nagiosconfig_extra_plugins: {}

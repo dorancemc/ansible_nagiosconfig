@@ -1,6 +1,12 @@
 ---
 __nagiosconfig_hosts_dir: "{{ nagiosconfig_hosts_path if nagiosconfig_hosts_path.startswith('/') else role_path ~ '/' ~ nagiosconfig_hosts_path }}"
 
+__nagiosconfig_tenants: "{{ (nagiosconfig_tenants.split(',') if nagiosconfig_tenants is string else nagiosconfig_tenants) | map('trim') | select | list }}"
+__nagiosconfig_hosts_find_paths: "{{ __nagiosconfig_tenants | map('regex_replace', '^', __nagiosconfig_hosts_dir ~ '/') | list if __nagiosconfig_tenants | length > 0 else [__nagiosconfig_hosts_dir] }}"
+
+# a scoped run only renders some hosts, so it always starts from the live objects
+__nagiosconfig_clean_assets: "{{ nagiosconfig_clean_assets | bool and __nagiosconfig_tenants | length == 0 }}"
+
 __nagiosconfig_reserved: "{{ nagiosconfig_reserved_objects if nagiosconfig_flavor == 'xi' else {} }}"
 
 __nagiosconfig_cfg_dirs:

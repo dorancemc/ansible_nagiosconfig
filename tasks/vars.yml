@@ -6,6 +6,29 @@
       - nagiosconfig_mode in [ 'always', 'never', 'once' ]
     fail_msg: nagiosconfig_flavor must be core or xi, nagiosconfig_mode must be always, never or once.
 
+- name: Find the tenant directories
+  ansible.builtin.find:
+    paths: "{{ __nagiosconfig_hosts_dir }}"
+    file_type: directory
+    recurse: false
+  register: __nagiosconfig_tenant_dirs
+  delegate_to: localhost
+  become: false
+  changed_when: false
+  check_mode: false
+  when: __nagiosconfig_tenants | length > 0
+
+- name: Validate the target tenants
+  ansible.builtin.assert:
+    that:
+      - nagiosconfig_hosts_path | length > 0
+      - __nagiosconfig_tenants | difference(__nagiosconfig_tenant_names) | length == 0
+    fail_msg: "Unknown tenant {{ __nagiosconfig_tenants | difference(__nagiosconfig_tenant_names) | join(', ') }} under {{ __nagiosconfig_hosts_dir }}. Available: {{ __nagiosconfig_tenant_names | sort | join(', ') }}."
+    success_msg: "Rendering the hosts and services of {{ __nagiosconfig_tenants | join(', ') }} only, nagiosconfig_clean_assets is ignored."
+  vars:
+    __nagiosconfig_tenant_names: "{{ __nagiosconfig_tenant_dirs.files | map(attribute='path') | map('basename') | list }}"
+  when: __nagiosconfig_tenants | length > 0
+
 - name: Load target dependent variables
   ansible.builtin.include_vars:
     file: "{{ lookup('ansible.builtin.first_found', __nagiosconfig_target_files) }}"

@@ -55,6 +55,23 @@ Contacts, contactgroups, hostgroups, servicegroups, commands and templates load 
 - `nagiosconfig_base_path` — objects shared by every tenant. Empty by default (lookup disabled).
 - `_tenant.yaml` — one per directory under `nagiosconfig_hosts_path`, holding that tenant's objects.
 
+### Deploying Some Tenants Only
+
+Rendering every host is what makes a run slow. `nagiosconfig_tenants` limits the host and service definitions of a run to some tenants — directory names under `nagiosconfig_hosts_path`, as a list or a comma separated string:
+
+```bash
+ansible-playbook --limit nagios playbook.yml --tags nagiosconfig -e nagiosconfig_tenants=cloud-status
+```
+
+With it set:
+
+- A name that matches no directory fails the run before anything reaches the target, listing the valid ones.
+- `nagiosconfig_clean_assets` is ignored. The other tenants' hosts come from the live objects copied into staging, and skipping that copy would delete them.
+- Shared objects — commands, templates, contacts and groups — are still rendered from every tenant, so a pending change in another tenant's `_tenant.yaml` or in `nagiosconfig_base_path` ships too.
+- `nagios -v` validates the scoped tenants together with the live definitions of the others.
+- Host files directly under `nagiosconfig_hosts_path`, outside any tenant, are left out.
+- With `nagiosconfig_mode: once` existing hosts are never rewritten, so a scoped run only adds new ones.
+
 ## Default Ordering
 
 Object defaults are not sorted alphabetically on purpose: they reproduce the key order of the role this was split from, so re-applying rewrites nothing byte-for-byte. Sorting them rewrites every object file on every server, so treat it as a deliberate change, not cleanup.

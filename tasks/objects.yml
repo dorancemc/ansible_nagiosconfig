@@ -118,7 +118,7 @@
   changed_when: false
   failed_when: __nagiosconfig_rsync_temp.rc != 0
   check_mode: false
-  when: not nagiosconfig_clean_assets | bool
+  when: not __nagiosconfig_clean_assets | bool
 
 - name: Copy the live configuration to the temporary directory
   ansible.builtin.command:
@@ -163,10 +163,12 @@
 
 - name: Find the host definition files
   ansible.builtin.find:
-    paths: "{{ __nagiosconfig_hosts_dir }}"
+    paths: "{{ __nagiosconfig_hosts_find_paths }}"
     patterns:
       - "*.yaml"
       - "*.yml"
+    excludes:
+      - _tenant.yaml
     file_type: file
     recurse: true
   register: __nagiosconfig_hosts_find
