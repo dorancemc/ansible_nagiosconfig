@@ -5,16 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-### Added
-
-- `nagiosconfig_tenants`: limits the host and service definitions of a run to some tenants, the directory names under `nagiosconfig_hosts_path`. A name that matches no directory fails the run before anything reaches the target. While it is set `nagiosconfig_clean_assets` is ignored, so the other tenants' live objects are always copied into staging and never deleted; shared objects are still rendered from every tenant.
-
-### Changed
-
-- `_tenant.yaml` files are no longer walked by the host definition loop, which only skipped them.
-
 ## [1.0.0] - 2026-08-20
 
 First release. Extracted from `ansible_nagioscore`, which from 4.0.0 installs Nagios but no longer manages monitoring objects.
